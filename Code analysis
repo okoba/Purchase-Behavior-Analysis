@@ -1,0 +1,39 @@
+
+1. Data Ingestion and Preparation:
+   - The script commences by importing requisite libraries and loading transactional data from a CSV file into a Pandas DataFrame named `Transaction`.
+   - Date columns are systematically converted into a suitable datetime format.
+
+2. Outlier Handling and Imputation:
+   - An Isolation Forest algorithm is applied to identify outliers within the 'TOT_SALES' column. Detected outliers are mitigated by substituting them with the median.
+   - A judicious approach to imputing missing values, specifically zero imputation, is employed.
+
+3. Customer Segmentation using K-Means:
+   - Employing K-Means clustering, customer segmentation is conducted based on relevant features such as 'LIFESTAGE' and 'PREMIUM_CUSTOMER'.
+   - The Elbow Method guides the selection of an optimal cluster count (K=3), and resultant clusters are appended as a new column, 'Cluster', in the `Purchase_behaviour` DataFrame.
+
+4. Integration of Dataframes:
+   - Integration of the `Purchase_behaviour` DataFrame with transaction data is performed through a merge operation on the common identifier 'LYLTY_CARD_NBR'.
+
+5. Customer Analytics:
+   - A suite of customer-centric metrics is computed, encompassing average purchase amount, purchase frequency, and retention rate.
+
+6. Customer Lifetime Value (CLV) Computation:
+   - Leveraging average purchase value, purchase frequency, and churn rate, the script computes the Customer Lifetime Value (CLV) metric.
+
+7. Product Sales Analysis:
+   - Exploration of product sales distributions and identification of the product with the highest sales constitute a segment of the analysis.
+
+8. Temporal Analysis:
+   - Temporal dynamics are explored by calculating the average time between purchases for individual customers.
+   - Line charts depicting retention rates and average basket sizes over time contribute to temporal insights.
+
+9. Data Visualization:
+   - Aesthetically pleasing visualizations, including bar charts and histograms, are generated to convey insights into customer segmentation, purchase frequencies, and average purchase amounts.
+
+10. Top Customers Identification:
+    - The script concludes with the visualization of top customer categories based on total purchases.
+
+11. Additional Time-Based Analysis:
+    - Supplementary code segments are included to assess customer retention rates and average basket sizes over time.
+
+In summary, this code orchestrates a multifaceted exploration of customer transactions, marrying statistical analysis with visualizations to derive actionable insights into customer behavior, temporal trends, and product dynamics. The analytical rigor exhibited aligns with professional standards, making it a valuable asset for comprehensive business intelligence.
