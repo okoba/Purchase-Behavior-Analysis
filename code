@@ -1,0 +1,320 @@
+import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import IsolationForest
+Transaction = pd.read_csv("QVI_transaction_data (2).csv")
+Transaction
+print(Transaction.dtypes)
+print(Transaction.head())
+base_date = pd.to_datetime('1900-01-01')
+Transaction['DATE'] = base_date + pd.to_timedelta(Transaction['DATE'], unit='D')
+Transaction
+Transaction.to_csv('modified_transaction.csv', index=False)  
+numeric_stats = Transaction.describe()
+numeric_stats
+categorical_counts = Transaction['LYLTY_CARD_NBR'].value_counts()
+categorical_counts
+numeric_stats.to_csv('numeric_stats.csv')
+
+categorical_counts.to_csv('categorical_counts.csv')
+purchase_amount = Transaction['TOT_SALES']
+product_quantity = Transaction['PROD_QTY']
+Customers = Transaction['LYLTY_CARD_NBR']
+Stores = Transaction['STORE_NBR']
+clf = IsolationForest(contamination=0.05)  
+clf.fit(purchase_amount.values.reshape(-1, 1))
+
+# Predict outliers (1 for inliers, -1 for outliers)
+outlier_predictions = clf.predict(purchase_amount.values.reshape(-1, 1))
+cleaned_data = Transaction[outlier_predictions == 1]
+median_purchase_amount = np.median(Transaction['TOT_SALES'])
+
+Transaction['TOT_SALES'] = np.where(outlier_predictions == -1, median_purchase_amount, Transaction['TOT_SALES'])
+median_stores = np.median(Transaction['STORE_NBR'])
+
+=Transaction['STORE_NBR'] = np.where(outlier_predictions == -1, median_stores, Transaction['STORE_NBR'])
+median_product_quantity = np.median(Transaction['PROD_QTY'])
+# Replace outliers with the median
+Transaction['PROD_QTY'] = np.where(outlier_predictions == -1, median_product_quantity, Transaction['PROD_QTY'])
+
+median_customers = np.median(Transaction['LYLTY_CARD_NBR'])
+
+# Replace outliers with the median
+Transaction['LYLTY_CARD_NBR'] = np.where(outlier_predictions == -1, median_customers, Transaction['LYLTY_CARD_NBR'])
+Transaction
+Transaction['TOT_SALES'] = np.where(outlier_predictions == -1, median_purchase_amount, Transaction['TOT_SALES'])
+Transaction['TOT_SALES'] = np.where(outlier_predictions == -1, Transaction['TOT_SALES'] * 2, Transaction['TOT_SALES'])
+Transaction['STORE_NBR'] = np.where(outlier_predictions == -1, median_stores, Transaction['STORE_NBR'])
+Transaction['STORE_NBR'] = np.where(outlier_predictions == -1, Transaction['STORE_NBR'] * 2, Transaction['STORE_NBR'])
+Transaction['PROD_QTY'] = np.where(outlier_predictions == -1, median_product_quantity, Transaction['PROD_QTY'])
+Transaction['LYLTY_CARD_NBR'] = np.where(outlier_predictions == -1, median_customers, Transaction['LYLTY_CARD_NBR'])
+Transaction['DATE'].fillna(0, inplace=True)
+Transaction['STORE_NBR'].fillna(0, inplace=True)
+Transaction['LYLTY_CARD_NBR'].fillna(0, inplace=True)
+Transaction['TXN_ID'].fillna(0, inplace=True)
+Transaction['PROD_NBR'].fillna(0, inplace=True)
+Transaction['PROD_NAME'].fillna(0, inplace=True)
+Transaction['PROD_QTY'].fillna(0, inplace=True)
+Transaction['TOT_SALES'].fillna(0, inplace=True)
+Transaction
+Purchase_behaviour = pd.read_csv("QVI_purchase_behaviour.csv")
+
+
+Clustering.
+from sklearn.preprocessing import StandardScaler
+Purchase_behaviour
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+X = Purchase_behaviour[['LIFESTAGE', 'PREMIUM_CUSTOMER']]
+
+X = pd.get_dummies(X, columns=['LIFESTAGE', 'PREMIUM_CUSTOMER'], drop_first=True)
+
+]scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+wcss = []  # Within-cluster sum of squares
+
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
+    kmeans.fit(X_scaled)
+    wcss.append(kmeans.inertia_)
+
+plt.figure(figsize=(8, 6))
+plt.plot(range(1, 11), wcss, marker='o', linestyle='--')
+plt.title('Elbow Method')
+plt.xlabel('Number of Clusters (K)')
+plt.ylabel('WCSS')
+plt.show()
+
+kmeans = KMeans(n_clusters=3, init='k-means++', random_state=42)
+kmeans.fit(X_scaled)
+
+cluster_labels = kmeans.labels_
+
+Purchase_behaviour['Cluster'] = cluster_labels
+import pandas as pd 
+merged_data = pd.merge(Purchase_behaviour, Transaction, on='LYLTY_CARD_NBR', how='inner')
+
+# Load the merged data from the CSV file
+merged_data = pd.read_csv('merged_data.csv')
+
+
+merged_data= pd.read_csv('merged_data.csv')
+
+total_sales_per_customer = merged_data.groupby('LYLTY_CARD_NBR')['TOT_SALES'].sum()
+average_purchase_amount = total_sales_per_customer.mean()
+
+print("Average Purchase Amount (Per Customer):", average_purchase_amount)
+
+purchase_count_per_customer = merged_data.groupby('LYLTY_CARD_NBR')['TXN_ID'].count().reset_index()
+
+average_purchase_frequency = purchase_count_per_customer['TXN_ID'].mean()
+
+print("Average Purchase Frequency (Per Customer):", average_purchase_frequency)
+
+start_date = '2018-10-19'
+end_date = '2018-12-16'
+
+period_transactions = merged_data[(merged_data['DATE'] >= start_date) & (merged_data['DATE'] <= end_date)]
+
+customers_at_start = merged_data[merged_data['DATE'] < start_date]['LYLTY_CARD_NBR'].nunique()
+
+customers_at_end = merged_data['LYLTY_CARD_NBR'].nunique()
+
+new_customers_acquired = customers_at_end - customers_at_start
+
+# Print the values
+print(f"Customers at the Beginning of the Period: {customers_at_start}")
+print(f"Customers at the End of the Period: {customers_at_end}")
+print(f"New Customers Acquired During the Period: {new_customers_acquired}")
+
+customers_at_end = merged_data['LYLTY_CARD_NBR'].nunique()
+
+new_customers_acquired = customers_at_end - customers_at_start
+
+# Print the values
+print(f"Customers at the Beginning of the Period: {customers_at_start}")
+print(f"Customers at the End of the Period: {customers_at_end}")
+print(f"New Customers Acquired During the Period: {new_customers_acquired}")
+
+customers_at_start = 42990  
+customers_at_end = 70231  
+
+new_customers_acquired = 27241  
+
+# Calculate the customer retention rate
+retention_rate = ((customers_at_end - new_customers_acquired) / customers_at_start) * 100
+
+# Print the retention rate
+print(f"Customer Retention Rate: {retention_rate:.2f}%")
+#Definition: The average number of items or products purchased in a single transaction.
+
+items_per_transaction = merged_data.groupby('TXN_ID')['PROD_QTY'].sum().reset_index()
+
+# Calculate the average basket size (per transaction)
+average_basket_size = items_per_transaction['PROD_QTY'].mean()
+
+print("Average Basket Size (Per Transaction):", average_basket_size)
+
+customers_at_beginning = 42990 
+
+customers_at_end = 70231 
+
+# Calculate the churn rate
+churn_rate = ((customers_at_end-customers_at_beginning) / customers_at_beginning) * 100
+
+# Print the churn rate
+print(f'Churn Rate: {churn_rate:.2f}%')
+
+Define the necessary variables
+average_purchase_value = 26.10032250715496  
+purchase_frequency = 3.5914909370505903
+churn_rate = 63.37  
+
+# Calculate CLV
+clv = (average_purchase_value * purchase_frequency) / churn_rate
+
+# Print the CLV
+print("Customer Lifetime Value (CLV): $", clv)
+
+category_totals = merged_data['PROD_NAME'].value_counts()
+
+category_percentages = (category_totals / category_totals.sum()) * 100
+
+# Display the result as a DataFrame
+category_distribution = pd.DataFrame({
+    'Category': category_percentages.index,
+    'Percentage of Total Purchases': category_percentages.values
+})
+
+# Sort the result by percentage in descending order
+churn_rate = 63.37  
+
+# Calculate CLV
+clv = (average_purchase_value * purchase_frequency) / churn_rate
+
+# Print the CLV
+print("Customer Lifetime Value (CLV): $", clv)
+
+category_totals = merged_data['PROD_NAME'].value_counts()
+
+category_percentages = (category_totals / category_totals.sum()) * 100
+
+# Display the result as a DataFrame
+category_distribution = pd.DataFrame({
+    'Category': category_percentages.index,
+    'Percentage of Total Purchases': category_percentages.values
+})
+
+# Sort the result by percentage in descending order
+category_distribution = category_distribution.sort_values(by='Percentage of Total Purchases', ascending=False)
+
+print(category_distribution)
+
+product_sales = merged_data.groupby('PROD_NAME')['TOT_SALES'].sum()
+
+most_sold_product = product_sales.idxmax()  
+
+most_sold_sales = product_sales.max()
+
+print(f"The product with the most sales is '{most_sold_product}' with total sales of ${most_sold_sales:.2f}.")
+
+merged_data['DATE'] = pd.to_datetime(merged_data['DATE'])
+
+merged_data.sort_values(by=['LYLTY_CARD_NBR', 'DATE'], inplace=True)
+
+# Calculate the time difference (recency) between consecutive purchases for each customer
+merged_data['Time_Between_Purchases'] = merged_data.groupby('LYLTY_CARD_NBR')['DATE'].diff()
+
+# Filter out customers with only one purchase (NaN recency)
+filtered_df = merged_data.dropna(subset=['Time_Between_Purchases'])
+
+# Calculate the average time between purchases
+average_purchase_recency = filtered_df.groupby('LYLTY_CARD_NBR')['Time_Between_Purchases'].mean()
+
+# Print the result
+print(average_purchase_recency)
+
+merged_data['Average_Purchase_Amount'] = merged_data['TOT_SALES'] / merged_data['LYLTY_CARD_NBR']
+
+#Bar Chart of Purchase Frequency (Per Customer)
+plt.figure(figsize=(10, 6))
+purchase_frequency = merged_data.groupby('LIFESTAGE')['purchase_count_per_customer'].mean()
+purchase_frequency.plot(kind='bar', color='coral')
+plt.title('Bar Chart of Purchase Frequency (Per Customer)')
+plt.xlabel('Customer Segment')
+plt.ylabel('Average Purchase Frequency')
+plt.xticks(rotation=45)
+plt.show()
+# Histogram of Average Purchase Amount (Per Customer)
+plt.figure(figsize=(10, 6))
+plt.hist(merged_data['Average_Purchase_Amount'], bins=20, color='skyblue', edgecolor='black')
+plt.title('Histogram of Average Purchase Amount (Per Customer)')
+plt.xlabel('Average Purchase Amount')
+purchase_count_per_customer = merged_data.groupby('LYLTY_CARD_NBR')['TXN_ID'].count().reset_index()
+purchase_count_per_customer.columns = ['LYLTY_CARD_NBR', 'purchase_count_per_customer']
+merged_data = pd.merge(merged_data, purchase_count_per_customer, on='LYLTY_CARD_NBR')
+
+# Bar Chart of Purchase Frequency (Per Customer)
+plt.figure(figsize=(10, 6))
+purchase_frequency = merged_data.groupby('LIFESTAGE')['purchase_count_per_customer'].mean()
+purchase_frequency.plot(kind='bar', color='coral')
+plt.title('Bar Chart of Purchase Frequency (Per Customer)')
+plt.xlabel('Customer Segment')
+plt.ylabel('Average Purchase Frequency')
+plt.xticks(rotation=45)
+plt.show() 
+
+
+
+# Assuming 'LYLTY_CARD_NBR' is a unique identifier for customers and 'Date' is the transaction date
+# Replace these with the actual column names in your dataset
+
+# Sample data
+data = {
+    'LYLTY_CARD_NBR': [1001, 1002, 1003, 1001, 1004],
+  'Date': ['2023-01-01', '2023-01-01', '2023-02-01', '2023-02-01', '2023-03-01']
+}
+
+df = pd.DataFrame(data)
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Calculate the retention rate
+retention_rate = df.groupby('LYLTY_CARD_NBR')['Date'].nunique() > 1
+retention_rate = retention_rate.sum() / df['LYLTY_CARD_NBR'].nunique() * 100
+
+print(f"Customer Retention Rate: {retention_rate:.2f}%")
+
+# Retention Rate Over Time (Line Chart)
+plt.figure(figsize=(10, 6))
+retention_over_time = merged_data.groupby('DATE')['LYLTY_CARD_NBR'].mean()
+retention_over_time.plot(kind='line', marker='o', color='green')
+plt.title('Retention Rate Over Time')
+plt.xlabel('Time Period')
+plt.ylabel('Retention Rate')
+plt.xticks(rotation=45)
+plt.show()
+
+
+# Average Basket Size Over Time (Line Chart)
+plt.figure(figsize=(10, 6))
+basket_size_over_time = merged_data.groupby('DATE')['PROD_QTY'].mean()
+basket_size_over_time.plot(kind='line', marker='o', color='purple')
+plt.title('Average Basket Size Over Time')
+plt.xlabel('Time Period')
+plt.ylabel('Average Basket Size')
+plt.xticks(rotation=45)
+plt.show()
+ 
+
+# Top buyers category
+plt.figure(figsize=(10, 6))
+category_preferences = merged_data.groupby('PREMIUM_CUSTOMER')['TOT_SALES'].sum()
+category_preferences.plot(kind='bar', color='gold')
+plt.title('top customers')
+plt.xlabel('customer category')
+plt.ylabel('Total Purchases')
+plt.xticks(rotation=45)
+plt.show()
